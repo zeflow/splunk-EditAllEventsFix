@@ -1,0 +1,32 @@
+// ==UserScript==
+// @name        Splunk Edit All Confirmation
+// @namespace   http://tampermonkey.net/
+// @version     1.0
+// @description Adds a confirmation popup to the 'Edit All Matching Events' button in Splunk UI
+// @author      Floris Ladan
+// @match       *://*/*/app/SplunkEnterpriseSecuritySuite/incident_review*
+// @grant       none
+// ==/UserScript==
+
+
+(function() {
+    'use strict';
+
+    var observer = new MutationObserver(function(mutations, obs) {
+        var editAllButton = document.querySelector('button[data-test="editAll"]');
+        if (editAllButton && !editAllButton.dataset.listenerAdded) {
+            editAllButton.dataset.listenerAdded = 'true';
+            editAllButton.addEventListener('click', function(event) {
+                if (!confirm('Are you sure you want to edit all matching events?')) {
+                    event.preventDefault(); // Prevent default if the user cancels
+                    event.stopPropagation(); // Stop the event from bubbling up
+                }
+            }, true); // Use capture to handle the event as early as possible
+        }
+    });
+
+    observer.observe(document.body, {
+        childList: true,
+        subtree: true
+    });
+})();
